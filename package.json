@@ -1,0 +1,61 @@
+{
+    "name": "n8n-nodes-tinify",
+    "version": "0.1.0",
+    "description": "Compress, resize, and convert images in n8n with the Tinify (TinyPNG) API",
+    "license": "MIT",
+    "homepage": "https://github.com/enlorik/n8n-nodes-tinify",
+    "keywords": [
+        "n8n-community-node-package",
+        "n8n",
+        "tinify",
+        "tinypng",
+        "image",
+        "compression"
+    ],
+    "author": {
+        "name": "enlorik"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/enlorik/n8n-nodes-tinify.git"
+    },
+    "scripts": {
+        "build": "n8n-node build",
+        "build:watch": "tsc --watch",
+        "dev": "n8n-node dev",
+        "lint": "n8n-node lint",
+        "lint:fix": "n8n-node lint --fix",
+        "test": "vitest run",
+        "release": "n8n-node release",
+        "prepublishOnly": "n8n-node prerelease"
+    },
+    "files": [
+        "dist"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "n8n": {
+        "n8nNodesApiVersion": 1,
+        "strict": true,
+        "credentials": [
+            "dist/credentials/TinifyApi.credentials.js"
+        ],
+        "nodes": [
+            "dist/nodes/Tinify/Tinify.node.js"
+        ]
+    },
+    "devDependencies": {
+        "@n8n/node-cli": "*",
+        "@types/node": "^26.0.0",
+        "eslint": "9.29.0",
+        "n8n-workflow": "^2.16.0",
+        "prettier": "3.6.2",
+        "release-it": "^19.0.4",
+        "typescript": "5.9.2",
+        "vitest": "^4.1.9"
+    },
+    "peerDependencies": {
+        "n8n-workflow": "*"
+    }
+}

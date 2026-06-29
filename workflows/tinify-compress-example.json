@@ -1,0 +1,90 @@
+{
+  "name": "Tinify – Compress an image",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "b1a7d2e0-0000-4000-8000-000000000001",
+      "name": "When clicking 'Execute workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        260,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.gstatic.com/webp/gallery/1.jpg",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "b1a7d2e0-0000-4000-8000-000000000002",
+      "name": "Download sample image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "compress",
+        "binaryPropertyName": "data",
+        "outputBinaryPropertyName": "data"
+      },
+      "id": "b1a7d2e0-0000-4000-8000-000000000003",
+      "name": "Tinify",
+      "type": "n8n-nodes-tinify.tinify",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ],
+      "credentials": {
+        "tinifyApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "Tinify API account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Download sample image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download sample image": {
+      "main": [
+        [
+          {
+            "node": "Tinify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "tags": []
+}
