@@ -29,7 +29,7 @@ the way a reviewer would, and fixed what I found.
 | Filesystem-safe binary I/O | `getBinaryDataBuffer` / `prepareBinaryData` |
 | Correct error types | `NodeOperationError` and `NodeApiError` with `itemIndex` |
 | `continueOnFail` support | per-item error routing, covered by a test |
-| Strict lint clean | `n8n-node lint` exits 0 |
+| Strict lint | passes with 0 errors and one documented non-blocking themed-icon warning |
 | Provenance | published to npm via GitHub Actions with an SLSA attestation |
 
 ## What I found and fixed (v0.1.1)
@@ -56,11 +56,22 @@ I kept the flag as `true` because n8n's framework requires it: the strict lint r
 way to declare a truthful "not a tool" state in code. I have documented the caveat here
 instead of implying a capability that works end-to-end.
 
+## Icon: single file retained intentionally
+
+`n8n-node lint` emits one non-blocking warning (`icon-prefer-themed-variants`) suggesting
+separate light and dark icon files. It is a warning, not an error, and the lint run passes
+with 0 errors. I kept the single `file:tinify.svg` icon on purpose: n8n's standard-parameters
+documentation states that a single `file:` icon is valid when it renders in both themes, and
+this SVG has an opaque orange background with a white symbol, so it reads correctly on both
+light and dark backgrounds without a separate variant. (The linter also rejects declaring the
+same file for both `light` and `dark`, so a two-file form would require a redundant duplicate.)
+
 ## Dependency and audit posture (as of 0.1.2)
 
 - **Production dependencies: 0 advisories.** `npm audit --omit=dev` reports zero. The
-  published package ships `dist` only, with **no runtime dependencies** — nothing the node
-  installs into an n8n instance carries a known vulnerability.
+  package **declares no regular runtime dependencies** and places its compiled node code
+  under `dist` (npm additionally includes the package metadata, README, and LICENSE in the
+  tarball) — so nothing the node installs into an n8n instance carries a known vulnerability.
 - **Development advisories: 6 moderate (0 high, 0 critical).** All six are the single
   `uuid@10` "missing buffer bounds check" advisory (GHSA-w5hq-g745-h8pq), inherited only
   through the official `@n8n/node-cli` build tool:
