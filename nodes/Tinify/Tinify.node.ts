@@ -8,6 +8,20 @@ import {
 	NodeApiError,
 } from 'n8n-workflow';
 
+// Maps a Tinify output MIME type to the file extension the converted image should
+// carry, so a PNG converted to WebP is named `photo.webp` rather than `photo.png`.
+const MIME_EXTENSIONS: Record<string, string> = {
+	'image/webp': 'webp',
+	'image/jpeg': 'jpg',
+	'image/jpg': 'jpg',
+	'image/png': 'png',
+	'image/avif': 'avif',
+};
+
+function extensionForMimeType(mimeType: string): string | undefined {
+	return MIME_EXTENSIONS[mimeType.toLowerCase().split(';')[0].trim()];
+}
+
 export class Tinify implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Tinify',
@@ -138,6 +152,29 @@ export class Tinify implements INodeType {
 					);
 				}
 
+				// Validate resize dimensions up front, before the /shrink upload consumes a
+				// monthly compression. Scale takes exactly one dimension; fit/cover/thumb need both.
+				if (operation === 'resize') {
+					const method = this.getNodeParameter('resizeMethod', i) as string;
+					const width = this.getNodeParameter('width', i) as number;
+					const height = this.getNodeParameter('height', i) as number;
+					if (method === 'scale') {
+						if ((width > 0) === (height > 0)) {
+							throw new NodeOperationError(
+								this.getNode(),
+								'Resize method "Scale" needs exactly one of Width or Height — not both, not neither.',
+								{ itemIndex: i },
+							);
+						}
+					} else if (width <= 0 || height <= 0) {
+						throw new NodeOperationError(
+							this.getNode(),
+							`Resize method "${method}" needs both Width and Height to be greater than 0.`,
+							{ itemIndex: i },
+						);
+					}
+				}
+
 				const buffer = await this.helpers.getBinaryDataBuffer(i, inputField);
 
 				// POST to /shrink — the result URL comes back in the Location header, not the body.
@@ -164,7 +201,7 @@ export class Tinify implements INodeType {
 
 				let resultBuffer: Buffer;
 				let resultMime = binary.mimeType;
-				const resultName = binary.fileName ?? 'image';
+				let resultName = binary.fileName ?? 'image';
 
 				if (operation === 'compress') {
 					const out = await this.helpers.httpRequestWithAuthentication.call(
@@ -185,6 +222,7 @@ export class Tinify implements INodeType {
 						const method = this.getNodeParameter('resizeMethod', i) as string;
 						const width = this.getNodeParameter('width', i) as number;
 						const height = this.getNodeParameter('height', i) as number;
+						// Dimensions were already validated before the upload.
 						const resize: Record<string, unknown> = { method };
 						if (width > 0) resize.width = width;
 						if (height > 0) resize.height = height;
@@ -211,6 +249,13 @@ export class Tinify implements INodeType {
 					resultBuffer = Buffer.from(out.body as ArrayBuffer);
 					const ct = out.headers?.['content-type'] as string | undefined;
 					if (ct) resultMime = ct;
+
+					// Convert changes the image format, so update the filename extension to
+					// match the new type (resize keeps the original format and filename).
+					if (operation === 'convert') {
+						const ext = extensionForMimeType(resultMime);
+						if (ext) resultName = `${resultName.replace(/\.[^./\\]+$/, '')}.${ext}`;
+					}
 				}
 
 				const newBinary = await this.helpers.prepareBinaryData(

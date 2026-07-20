@@ -1,6 +1,6 @@
 {
     "name": "n8n-nodes-tinify",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Compress, resize, and convert images in n8n with the Tinify (TinyPNG) API",
     "license": "MIT",
     "homepage": "https://github.com/enlorik/n8n-nodes-tinify",

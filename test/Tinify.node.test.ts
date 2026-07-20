@@ -147,4 +147,70 @@ describe('Tinify node', () => {
 		expect(http).not.toHaveBeenCalled();
 		expect(out[0].json.error).toContain('No binary field');
 	});
+
+	it('renames the output file extension when converting to a new format', async () => {
+		const http = vi.fn(async (_cred: string, opts: { url: string }) => {
+			if (opts.url === SHRINK_URL) {
+				return { headers: { location: RESULT_URL, 'compression-count': '10' }, body: new ArrayBuffer(0) };
+			}
+			return { headers: { 'content-type': 'image/webp' }, body: Buffer.from('webp').buffer };
+		});
+
+		const ctx = makeContext({
+			params: {
+				operation: 'convert',
+				binaryPropertyName: 'data',
+				outputBinaryPropertyName: 'data',
+				convertType: 'image/webp',
+			},
+			binary: { mimeType: 'image/png', fileName: 'photo.png' },
+			httpMock: http,
+		});
+
+		const [out] = await Tinify.prototype.execute.call(ctx);
+
+		expect((out[0].binary?.data as unknown as { fileName: string }).fileName).toBe('photo.webp');
+	});
+
+	it('rejects a Scale resize given both Width and Height, before any upload', async () => {
+		const http = vi.fn();
+		const ctx = makeContext({
+			params: {
+				operation: 'resize',
+				binaryPropertyName: 'data',
+				outputBinaryPropertyName: 'data',
+				resizeMethod: 'scale',
+				width: 100,
+				height: 100,
+			},
+			httpMock: http,
+			continueOnFail: true,
+		});
+
+		const [out] = await Tinify.prototype.execute.call(ctx);
+
+		expect(http).not.toHaveBeenCalled();
+		expect(out[0].json.error).toContain('exactly one');
+	});
+
+	it('rejects a Fit resize missing a dimension, before any upload', async () => {
+		const http = vi.fn();
+		const ctx = makeContext({
+			params: {
+				operation: 'resize',
+				binaryPropertyName: 'data',
+				outputBinaryPropertyName: 'data',
+				resizeMethod: 'fit',
+				width: 100,
+				height: 0,
+			},
+			httpMock: http,
+			continueOnFail: true,
+		});
+
+		const [out] = await Tinify.prototype.execute.call(ctx);
+
+		expect(http).not.toHaveBeenCalled();
+		expect(out[0].json.error).toContain('both Width and Height');
+	});
 });

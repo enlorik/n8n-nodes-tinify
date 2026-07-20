@@ -60,4 +60,6 @@ To try it: in n8n open **Workflows → Import from File**, select the JSON, then
 
 ## Version history
 
+**0.1.1** — Convert now renames the output file extension to match the new format; resize dimensions are validated before upload so an invalid request no longer uses a compression.
+
 **0.1.0** — Initial release. Compress, Resize (Scale / Fit / Cover / Thumb), and Convert (WebP / PNG / JPEG / AVIF) operations.
