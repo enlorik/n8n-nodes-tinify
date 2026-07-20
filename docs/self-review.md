@@ -29,7 +29,6 @@ the way a reviewer would, and fixed what I found.
 | Filesystem-safe binary I/O | `getBinaryDataBuffer` / `prepareBinaryData` |
 | Correct error types | `NodeOperationError` and `NodeApiError` with `itemIndex` |
 | `continueOnFail` support | per-item error routing, covered by a test |
-| `usableAsTool` | node is usable as an AI tool |
 | Strict lint clean | `n8n-node lint` exits 0 |
 | Provenance | published to npm via GitHub Actions with an SLSA attestation |
 
@@ -42,6 +41,20 @@ the way a reviewer would, and fixed what I found.
 | The TypeScript build-info file shipped inside the package. | Low | Relocated it out of `dist`; the published tarball no longer includes it. |
 
 No Critical findings were identified.
+
+## Known limitation: `usableAsTool`
+
+The node declares `usableAsTool: true`. I checked whether that is genuinely useful: it
+is not fully, because the node's input is a **binary image** on the item, and an AI Agent
+can only supply text/JSON parameters via `$fromAI` — it cannot hand the node an image. So
+the node is only meaningful as a tool inside a workflow that already provides the binary
+data.
+
+I kept the flag as `true` because n8n's framework requires it: the strict lint rule
+`@n8n/community-nodes/node-usable-as-tool` demands the property be present, and the
+`INodeTypeDescription` type only accepts `true` (it rejects `false`). There is therefore no
+way to declare a truthful "not a tool" state in code. I have documented the caveat here
+instead of implying a capability that works end-to-end.
 
 ## What I would look at next
 

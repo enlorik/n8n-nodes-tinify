@@ -36,6 +36,10 @@ export class Tinify implements INodeType {
 		},
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
+		// n8n's strict lint requires this property and its type only accepts `true`
+		// (`false` is rejected, omission fails lint). Practical caveat: an AI Agent cannot
+		// supply this node's binary image input via $fromAI, so it is only useful as a tool
+		// inside a workflow that already provides the binary data.
 		usableAsTool: true,
 		credentials: [
 			{
