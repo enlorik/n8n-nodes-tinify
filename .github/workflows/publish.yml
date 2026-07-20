@@ -81,6 +81,12 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
+      - name: Ensure npm supports OIDC trusted publishing
+        # Trusted publishing (tokenless OIDC) requires npm >= 11.5.1; the LTS Node
+        # image ships an older npm, so upgrade before installing and publishing.
+        # Harmless when an NPM_TOKEN is used instead.
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: 'npm ci'
 
