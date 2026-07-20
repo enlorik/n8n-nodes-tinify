@@ -56,6 +56,23 @@ I kept the flag as `true` because n8n's framework requires it: the strict lint r
 way to declare a truthful "not a tool" state in code. I have documented the caveat here
 instead of implying a capability that works end-to-end.
 
+## Dependency and audit posture (as of 0.1.2)
+
+- **Production dependencies: 0 advisories.** `npm audit --omit=dev` reports zero. The
+  published package ships `dist` only, with **no runtime dependencies** — nothing the node
+  installs into an n8n instance carries a known vulnerability.
+- **Development advisories: 6 moderate (0 high, 0 critical).** All six are the single
+  `uuid@10` "missing buffer bounds check" advisory (GHSA-w5hq-g745-h8pq), inherited only
+  through the official `@n8n/node-cli` build tool:
+  `@n8n/node-cli → @n8n/ai-node-sdk → @n8n/ai-utilities → @langchain/classic | @langchain/community → uuid@10`.
+  These are upstream, dev-only, and cannot be resolved without forcing incompatible
+  versions of n8n's own tooling, so they are left as documented upstream residuals rather
+  than patched over with `overrides` or `audit fix --force`. They are never present in the
+  runtime a user installs.
+- The `0.1.2` release refreshed dev tooling (eslint, prettier, typescript, release-it,
+  vitest, `@n8n/node-cli`) to current versions aligned with n8n's official starter, which
+  is what reduced the development advisory count from 16 to 6.
+
 ## What I would look at next
 
 - A test exercising the real Tinify API end-to-end in CI (currently the HTTP layer is
